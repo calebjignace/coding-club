@@ -1,0 +1,36 @@
+<!-- 
+     Filename: love-hate.html
+     Author: Caleb Ignace
+     Date: September 21, 2020
+     Description: This code produces a simple page that uses HTML, CSS, and Javascript.
+     ... The CSS is contained within <style></style>, the HTML elements are in <body></body>,
+     ... and the Javascript is inside <script></script>. Every time the user clicks the button,
+     ... the page will chance the world 'LOVE' to 'HATE' or 'HATE' to 'LOVE'. 
+-->
+<html>
+  <style>
+    body {
+	background-color: crimson;
+    }
+  </style>
+  <body>
+    <button id='btn'>
+      Click me!
+    </button>
+    <p id='msg'>I LOVE to code!</p>
+  </body>
+  <script>
+    const button = document.getElementById('btn');
+    const message = document.getElementById('msg');
+    let love = true;
+    button.onclick = function() {
+	if (love) {
+	    message.innerHTML = "I HATE to code!";
+	    love = false;
+	} else {
+	    message.innerHTML = "I LOVE to code!";
+	    love = true;
+	}
+    }
+  </script>
+</html>
