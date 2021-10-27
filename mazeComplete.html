@@ -1,11 +1,11 @@
 <html>
   <style>
     body {
-	background-color: gray;
+	background-color: #152238;
     }
     .map {
-	background-color: white;
-	border: solid 4px blue;
+	background-color: #23395d;
+	!border: solid 4px blue;
     }
   </style>
   <canvas id='map' class='map'></canvas>
@@ -15,7 +15,7 @@
     }
     
     class Maze {
-	constructor(canvas, size, numberCells, numberWalls) {
+	constructor(canvas, size, numberCells, proportionWalls) {
 	    this.canvas = canvas;
 	    this.ctx = this.canvas.getContext('2d');
 
@@ -24,30 +24,36 @@
             this.canvas.height = this.size;
 
 	    this.numberCells = numberCells; // on one side
-	    this.numberWalls = numberWalls;
+	    this.proportionWalls = proportionWalls;
 	    
 	    this.cellWidth = this.size/this.numberCells;
 	    this.numberCorners = numberCells + 1;
 	    
-	    this.cornerRadius = 0.075*this.canvas.width/this.numberCorners;
-	    this.cornerColor = 'red';
-	    this.playerRadius = 5*this.cornerRadius;
-	    this.playerColor = 'black';
-	    this.wallWidth = 1.5*this.cornerRadius;
-	    this.wallColor = 'blue';
+	    this.cornerRadius = 0.1*this.canvas.width/this.numberCorners;
+	    this.cornerColor = '#152238';
+	    this.playerRadius = 10*this.cornerRadius;
+	    this.playerColor = '#152238';
+	    this.wallWidth = 2*this.cornerRadius;
+	    this.wallColor = '#152238';
 	    this.pathWidth = this.wallWidth;
-	    this.pathColor = 'green';
+	    this.pathColor = 'white';
 	    
 	    this.cells = {};
 	    this.walls = {};
 	    this.initializeMaze();
-	    this.render(true, true);
 	}
 	
 	initializeMaze() {
 	    this.initializeCells();
 	    this.initializePaths();
-	    //this.initializeWalls
+	    this.initializeWalls();
+	}
+
+	initializeWalls() {
+	    let paths = Object.keys(this.walls);
+	    for (let i = 0; i < this.proportionWalls*paths.length; i++) {
+		this.walls[paths[randInt(paths.length)]] = 0;
+	    }
 	}
 	
 	initializeCells() {
@@ -61,13 +67,13 @@
 	    }
 	}
 	
-	initializeWall(labelA, labelB) {
+	initializePath(labelA, labelB) {
 	    /*
 	      I could check to see if this wall is already initialized, 
 	      but I think that could actually be more computationally intensive.
 	    */
 	    //console.log(labelA, labelB);
-	    this.walls[[labelA, labelB].sort().toString()] = 0;
+	    this.walls[[labelA, labelB].sort().toString()] = 1;
 	}
 	
 	initializePaths() {
@@ -76,54 +82,54 @@
 		if (label == 0) {
 		    //console.log('top left corner', label)
 		    // top left corner cell
-		    this.initializeWall(label, label + 1); // right
-		    this.initializeWall(label, label + this.numberCells); // bottom
+		    this.initializePath(label, label + 1); // right
+		    this.initializePath(label, label + this.numberCells); // bottom
 		} else if (label == this.numberCells - 1) {
 		    //console.log('top right corner', label)
 		    // top right corner cell
-		    this.initializeWall(label, label - 1); // left
-                    this.initializeWall(label, label + this.numberCells); // bottom
+		    this.initializePath(label, label - 1); // left
+                    this.initializePath(label, label + this.numberCells); // bottom
 		} else if (label == this.numberCells*(this.numberCells - 1)) {
 		    //console.log('bottom left corner', label)
 		    // bottom left corner cell
-		    this.initializeWall(label, label + 1); // right
-                    this.initializeWall(label, label - this.numberCells); // top
+		    this.initializePath(label, label + 1); // right
+                    this.initializePath(label, label - this.numberCells); // top
 		} else if (label == this.numberCells*this.numberCells - 1) {
 		    //console.log('bottom right corner', label)
 		    // bottom right corner cell
-		    this.initializeWall(label, label - 1); // left
-                    this.initializeWall(label, label - this.numberCells); // top
+		    this.initializePath(label, label - 1); // left
+                    this.initializePath(label, label - this.numberCells); // top
 		} else if (label > 0 && label < this.numberCells - 1) {
 		    //console.log('top row', label)
 		    // top row minus corners
-		    this.initializeWall(label, label + 1); // right
-                    this.initializeWall(label, label - 1); // left
-		    this.initializeWall(label, label + this.numberCells); // bottom
+		    this.initializePath(label, label + 1); // right
+                    this.initializePath(label, label - 1); // left
+		    this.initializePath(label, label + this.numberCells); // bottom
 		} else if (label > this.numberCells*(this.numberCells - 1) && label < this.numberCells*this.numberCells - 1) {
 		    //console.log('bottom row', label)
 		    // bottom row minus corners
-		    this.initializeWall(label, label + 1); // right
-		    this.initializeWall(label, label - 1); // left
-		    this.initializeWall(label, label - this.numberCells ); // top
+		    this.initializePath(label, label + 1); // right
+		    this.initializePath(label, label - 1); // left
+		    this.initializePath(label, label - this.numberCells ); // top
 		} else if (label % this.numberCells == 0) {
 		    //console.log('left column', label)
 		    // left column minus corners
-		    this.initializeWall(label, label - this.numberCells); // top
-                    this.initializeWall(label, label + this.numberCells); // bottom
-		    this.initializeWall(label, label + 1); // right
+		    this.initializePath(label, label - this.numberCells); // top
+                    this.initializePath(label, label + this.numberCells); // bottom
+		    this.initializePath(label, label + 1); // right
 		} else if ((label + 1) % this.numberCells == 0) {
 		    //console.log('right column', label)
 		    // right column minus corners
-		    this.initializeWall(label, label - this.numberCells); // top
-		    this.initializeWall(label, label + this.numberCells); // bottom
-		    this.initializeWall(label, label - 1); // left
+		    this.initializePath(label, label - this.numberCells); // top
+		    this.initializePath(label, label + this.numberCells); // bottom
+		    this.initializePath(label, label - 1); // left
 		} else {
 		    //console.log('middle', label)
 		    // in the middle
-		    this.initializeWall(label, label - 1); // left
-		    this.initializeWall(label, label + 1); // right
-		    this.initializeWall(label, label - this.numberCells); // top
-		    this.initializeWall(label, label + this.numberCells); // bottom
+		    this.initializePath(label, label - 1); // left
+		    this.initializePath(label, label + 1); // right
+		    this.initializePath(label, label - this.numberCells); // top
+		    this.initializePath(label, label + this.numberCells); // bottom
 		}
 	    }
 	    /*
@@ -275,7 +281,7 @@
 	    }
 	}
 	
-	render(showCorners = false, showPaths = false) {
+	render(showCorners = false, showPaths = false, showLabels = false) {
 	    if (showCorners) {
 		this.renderCorners();
 	    }
@@ -286,9 +292,9 @@
 	    
 	    this.renderWalls();
 
-	    this.renderCellLabels();
-
-	    //this.renderCellAxes();
+	    if (showLabels) {
+		this.renderCellLabels();
+	    }
 	}
 
 	drawCircle(x, y, circleType) {
@@ -343,47 +349,53 @@
         }
 
 	renderWalls() {
-	    let a, b, c, d;
-	    let x1,x2,y1,y2;
-            let labelA, labelB, tempLabel;
+	    //let a, b, c, d;
+	    //let x1,x2,y1,y2;
+            //let labelA, labelB, tempLabel;
 	    for (let [path, open] of Object.entries(this.walls)) {		
 		if (!open) {
-		    [labelA, labelB] = path.split(',');
-		    labelA = Number(labelA);
-		    labelB = Number(labelB);
-		    if (labelA > labelB) {
-			tempLabel = labelA;
-			labelA = labelB;
-			labelB = tempLabel;
-		    }
-		    a = this.cells[labelA][0];
-                    b = this.cells[labelA][1];
-                    c = this.cells[labelB][0];
-                    d = this.cells[labelB][1];
-		    if (a != c) {
-			// vertical wall
-			console.log(path,'vertical')
-			x1 = c;
-			y1 = b;
-			x2 = c;
-			y2 = d + 1;
-			//this.drawLine(x1*this.cellWidth, y1*this.cellWidth, x2*this.cellWidth, y2*this.cellWidth, 'wall');
-		    } else {
-			// horizonal wall
-			console.log(path, 'horizontal')
-			x1 = a;
-                        y1 = d;
-                        x2 = c + 1;
-                        y2 = d;
-		    }
-		    console.log(x1, y1, x2, y2, 'labels:', labelA, labelB)
-		    this.drawLine(x1*this.cellWidth, y1*this.cellWidth, x2*this.cellWidth, y2*this.cellWidth, 'wall');
+		    this.renderWall(path, 'wall');
 		}
 	    }
 	}
 
+	renderWall(path, lineType) {
+	    let [labelA, labelB] = path.split(',');
+	    labelA = Number(labelA);
+	    labelB = Number(labelB);
+	    if (labelA > labelB) {
+		let tempLabel = labelA;
+		labelA = labelB;
+		labelB = tempLabel;
+	    }
+	    let s = 0.05;
+	    let a, b, c, d, x1, y1, x2, y2;
+	    a = this.cells[labelA][0];
+            b = this.cells[labelA][1];
+            c = this.cells[labelB][0];
+            d = this.cells[labelB][1];
+	    if (a != c) {
+		// vertical wall
+		//console.log(path,'vertical')
+		x1 = c;
+		y1 = b;
+		x2 = c;
+		y2 = d + 1;
+		//this.drawLine(x1*this.cellWidth, y1*this.cellWidth, x2*this.cellWidth, y2*this.cellWidth, 'wall');
+	    } else {
+		// horizonal wall
+		//console.log(path, 'horizontal')
+		x1 = a;
+                y1 = d;
+                x2 = c + 1;
+                y2 = d;
+	    }
+	    //console.log(x1, y1, x2, y2, 'labels:', labelA, labelB)
+	    this.drawLine(x1*this.cellWidth, y1*this.cellWidth, x2*this.cellWidth, y2*this.cellWidth, lineType);
+	}
+    
 	drawLine(x1, y1, x2, y2, lineType) {
-            this.ctx.beginPath();
+	    this.ctx.beginPath();
             this.ctx.moveTo(x1, y1);
             this.ctx.lineTo(x2, y2);
 	    if (lineType == 'wall') {
@@ -392,16 +404,53 @@
 	    } else if (lineType == 'path') {
 		this.ctx.lineWidth = this.pathWidth;
                 this.ctx.strokeStyle = this.pathColor;
+	    } else if (lineType == 'erase wall') {
+		this.ctx.lineWidth = this.pathWidth;
+                this.ctx.strokeStyle = 'white';
 	    }
             this.ctx.stroke();
         }
+
+	flipRandomPath() {
+	    let paths = Object.keys(this.walls);
+	    let changePath;
+	    let i = randInt(paths.length);
+	    changePath = paths[i];
+	    this.walls[changePath] = !this.walls[changePath];
+	}
+
+	clear() {
+	    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	}
+    }
+
+    class Game {
+	constructor(canvas) {
+	    this.size = 750;
+	    this.numberCells = 30;
+	    this.proportionWalls = 0.5;
+
+	    this.deltaT = 100;
+	    this.iterations = 100;
+	    
+	    this.maze = new Maze(document.getElementById('map'), this.size, this.numberCells, this.proportionWalls);
+	    this.maze.render();
+	}
+
+	play () {
+	    let time = 0;
+	    for (let i = 0; i < this.iterations; i++) {
+		setTimeout(() => {
+		    time += this.deltaT/1000;
+		    this.maze.flipRandomPath();
+		    this.maze.clear();
+		    this.maze.render();
+		}, i*this.deltaT);
+	    }
+	}
     }
     
-    let canvas = document.getElementById('map');
-    let size = 500;
-    let numberCells = 5;
-    let numberWalls = 10;
-
-    let maze = new Maze(canvas, size, numberCells, numberWalls);
+    let game = new Game();
+    game.play();
   </script>
 </html>
