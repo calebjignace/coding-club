@@ -13,16 +13,32 @@
     function randInt(max) {
         return Math.floor(Math.random()*max);
     }
+
+    class Cell {
+	constructor(label, i, j) {
+	    this.label = label;
+	    this.i = i;
+	    this.j = j;
+	    this.neighbors = {};
+	}
+	
+	setNeighbor(direction, cell) {
+	    if (!['left', 'right', 'top', 'bottom'].includes(direction)) {
+		return;
+	    }
+	    this.neighbors[direction] = cell;
+	}
+    }
     
     class Maze {
 	constructor(canvas, size, numberCells, proportionWalls) {
 	    this.canvas = canvas;
 	    this.ctx = this.canvas.getContext('2d');
-
+	    
 	    this.size = size;
 	    this.canvas.width =	this.size;
             this.canvas.height = this.size;
-
+	    
 	    this.numberCells = numberCells; // on one side
 	    this.proportionWalls = proportionWalls;
 	    
@@ -60,8 +76,12 @@
 	    let count = 0;
 	    for (let i = 0; i < this.numberCells; i++) {
 		for (let j = 0; j < this.numberCells; j++) {
-		    this.cells[String(count)]  = [i, j];
-		    //this.cells[label]  = [i % this.numberCells, j % this.numberCells];
+
+
+		    //this.cells[String(count)]  = [i, j];
+		    
+		    this.cells[String(count)] = new Cell(String(count), i, j);
+		    
 		    count++;
 		}
 	    }
@@ -168,10 +188,10 @@
 	    for (let [path, open] of Object.entries(this.walls)) {
 		if (open) {
 		    [labelA, labelB] = path.split(',');
-		    a = this.cells[labelA][0];
-		    b = this.cells[labelA][1];
-		    c = this.cells[labelB][0];
-		    d = this.cells[labelB][1];
+		    a = this.cells[labelA].i;
+		    b = this.cells[labelA].j;
+		    c = this.cells[labelB].i;
+		    d = this.cells[labelB].j;
 		    this.drawLine((a+0.5)*this.cellWidth,
 				  (b + 0.5)*this.cellWidth,
 				  (c + 0.5)*this.cellWidth,
@@ -184,8 +204,8 @@
 	    let a, b;
 	    this.ctx.font = String(this.size/this.numberCells/5) + "px Arial";
 	    for (let [label, position] of Object.entries(this.cells)) {
-		a = this.cells[label][0];
-                b = this.cells[label][1];
+		a = this.cells[label].i;
+                b = this.cells[label].j;
 		this.ctx.fillText(String(label), (a + 0.5)*this.cellWidth, (b + 0.5)*this.cellWidth);
 	    }
 	}
@@ -220,10 +240,10 @@
 	    }
 	    let s = 0.05;
 	    let a, b, c, d, x1, y1, x2, y2;
-	    a = this.cells[labelA][0];
-            b = this.cells[labelA][1];
-            c = this.cells[labelB][0];
-            d = this.cells[labelB][1];
+	    a = this.cells[labelA].i;
+            b = this.cells[labelA].j;
+            c = this.cells[labelB].i;
+            d = this.cells[labelB].j;
 	    if (a != c) {
 		// vertical wall
 		x1 = c;
