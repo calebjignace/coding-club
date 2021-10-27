@@ -31,8 +31,8 @@
 	    
 	    this.cornerRadius = 0.1*this.canvas.width/this.numberCorners;
 	    this.cornerColor = '#152238';
-	    this.playerRadius = 10*this.cornerRadius;
-	    this.playerColor = '#152238';
+	    this.playerRadius = 3*this.cornerRadius;
+	    this.playerColor = '#4169E1';
 	    this.wallWidth = 2*this.cornerRadius;
 	    this.wallColor = '#152238';
 	    this.pathWidth = this.wallWidth;
@@ -132,153 +132,6 @@
 		    this.initializePath(label, label + this.numberCells); // bottom
 		}
 	    }
-	    /*
-	    for (let count = 0; count < this.numberWalls; count++) {
-		this.walls.push(this.createWall());
-	    }
-	    */
-	}
-
-	isCorner(i, j) {
-	    // there must be a simpler way to do this, probably with modulo
-	    if (i == 0 && j == 0) {
-		return true; // north west corner
-	    } else if (i == 0 && j == this.numberCells - 1) {
-		return true; // south west corner
-	    } else if (i == this.numberCells - 1 && j == 0) {
-		return true; // north east corner
-	    } else if (i == this.numberCells - 1 && j == this.numberCells - 1) {
-		return true; // south west corner
-	    } else {
-		return false;
-	    }
-	}
-
-	isSameCell(A, B) {
-	    if (A[0] == B[0] && A[1] == B[1]) {
-		return true;
-	    } else {
-		return false;
-	    }
-	}
-	
-	isAlreadyWall(w) {
-	    // this will be deleted eventually
-
-	    /*
-	      Checks to see if w is in set of walls
-	      
-	      Returns true if
-	      w = [[a,b], [c, d]] 
-	      e = [[a,b], [c, d]]
-	      OR
-	      w = [[a,b], [c, d]] 
-	      e = [[c, d], [a, b]]
-
-	      Otherwise returns false
-	      
-	      That is, order of cells doesn't matter,
-	      per the definition of edge between vertices.
-	    */
-	    for (let o of this.walls) {
-		if (this.isSameCell(w[0], o[0]) && this.isSameCell(w[1], o[1])) {
-		    return true;
-		} else if (this.isSameCell(w[0], o[1]) && this.isSameCell(w[1], o[0])) {
-		    return true;
-		} else {
-		    return false;
-		}
-	    }
-	}
-	
-	mapStillOpen(newWall) {
-            if (!newWall) {
-		return false;
-            }
-	}
-	
-	createWall() {
-	    /*
-	      Creates a valid wall out of all possible walls.
-	      
-	      The loop chooses random wall and rejects it if
-	      1) it's already in set of walls, or
-	      2) it prevents a path from any cell to any other cell
-	    */
-	    let i1, j1; // first cell
-	    let i2, j2; // second cell
-	    let potentialWall;
-	    let dice;
-	    //let start = -1, end = N + 1;
-	    let start = 0, end = this.numberCells - 1;
-	    while (true) {
-		i1 = randInt(end + 1) + start, j1 = randInt(end) + start;
-		//i1 = randInt(end + 1) + start, j1 = randInt(end + 1) + start;
-		if (!this.isCorner(i1, j1)) {
-		    if (i1 == start) {
-			// first cell is on west edge
-			// second cell is east of first
-			i2 = i1 + 1;
-			j2 = j1;
-		    } else if (i1 == end) {
-			// first cell is on east edge
-			// second cell is west of first
-			i2 = i1 - 1;
-			j2 = j1;
-		    } else if (j1 == start) {
-			// first cell is on north edge
-			// second cell is south of first
-			i2 = i1;
-			j2 = j1 + 1;
-		    } else if (j1 == end) {
-			// first cell is on south edge
-			// second cell is north of first
-			i2 = i1;
-			j2 = j1 - 1;
-		    } else {
-			// first cell is not on an edge
-			// second cell can be either north, south, west, or east of first
-			dice = randInt(4);
-			if (dice == 0) {
-			    // west
-			    i2 = i1 + 1;
-			    j2 = j1;
-			} else if (dice == 1) {
-			    // east
-			    i2 = i1 - 1;
-                            j2 = j1;
-			} else if (dice == 2) {
-			    // south
-			    i2 = i1;
-                            j2 = j1 + 1;
-			} else {
-			    // north
-			    i2 = i1;
-                            j2 = j1 - 1;
-			}
-		    }
-		    potentialWall = [[i1, j1], [i2, j2]];
-		    //if (novelEdge(potentialEdge)) {
-		    //if (mapIsOpen(potentialEdge)) {
-		    return potentialWall;
-		    //}
-		    //}
-		}
-	    }
-	}
-	
-	printWalls(walls) {
-	    console.log("walls:");
-	    for (let w of this.walls) {
-		console.log(w[0] + '--' + w[1]);
-	    }
-	}
-
-	printCells(cells) {
-	    console.log("cells:\nposition--label");
-	    for (let [key, value] of Object.entries(this.cells)) {
-		console.log(key + '--' + value);
-	    }
 	}
 	
 	render(showCorners = false, showPaths = false, showLabels = false) {
@@ -349,9 +202,6 @@
         }
 
 	renderWalls() {
-	    //let a, b, c, d;
-	    //let x1,x2,y1,y2;
-            //let labelA, labelB, tempLabel;
 	    for (let [path, open] of Object.entries(this.walls)) {		
 		if (!open) {
 		    this.renderWall(path, 'wall');
@@ -376,21 +226,17 @@
             d = this.cells[labelB][1];
 	    if (a != c) {
 		// vertical wall
-		//console.log(path,'vertical')
 		x1 = c;
 		y1 = b;
 		x2 = c;
 		y2 = d + 1;
-		//this.drawLine(x1*this.cellWidth, y1*this.cellWidth, x2*this.cellWidth, y2*this.cellWidth, 'wall');
 	    } else {
 		// horizonal wall
-		//console.log(path, 'horizontal')
 		x1 = a;
                 y1 = d;
                 x2 = c + 1;
                 y2 = d;
 	    }
-	    //console.log(x1, y1, x2, y2, 'labels:', labelA, labelB)
 	    this.drawLine(x1*this.cellWidth, y1*this.cellWidth, x2*this.cellWidth, y2*this.cellWidth, lineType);
 	}
     
@@ -427,13 +273,19 @@
     class Game {
 	constructor(canvas) {
 	    this.size = 750;
-	    this.numberCells = 30;
-	    this.proportionWalls = 0.5;
+	    this.numberCells = 21;
+	    this.proportionWalls = 0.8;
+	    this.canvas = document.getElementById('map');
 
-	    this.deltaT = 100;
-	    this.iterations = 100;
+	    this.deltaT = 10;
+	    this.iterations = 1000;
 	    
-	    this.maze = new Maze(document.getElementById('map'), this.size, this.numberCells, this.proportionWalls);
+	    this.maze = new Maze(this.canvas, this.size, this.numberCells, this.proportionWalls);
+
+	    this.render();
+	}
+
+	render() {
 	    this.maze.render();
 	}
 
