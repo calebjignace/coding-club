@@ -1,4 +1,4 @@
-<html>
+<html>OA
   <style>
     body {
 	background-color: #152238;
@@ -95,61 +95,86 @@
 	    //console.log(labelA, labelB);
 	    this.walls[[labelA, labelB].sort().toString()] = 1;
 	}
+
+	setRightCellPath(label) {
+            this.initializePath(label, label + 1);
+	    this.cells[String(label)].setNeighbor('right', this.cells[String(label + 1)]);
+        }
+	
+	setLeftCellPath(label) {
+	    this.initializePath(label, label - 1);
+	    this.cells[String(label)].setNeighbor('left', this.cells[String(label - 1)]);
+	}
+
+	setBottomCellPath(label) {
+            this.initializePath(label, label + this.numberCells);
+	    this.cells[String(label)].setNeighbor('bottom', this.cells[String(label + this.numberCells)]);
+        }
+
+	setTopCellPath(label) {
+            this.initializePath(label, label - this.numberCells);
+	    this.cells[String(label)].setNeighbor('top', this.cells[String(label - this.numberCells)]);
+        }
+
+	
+	
 	
 	initializePaths() {
+	    let thisCell, leftCell, rightCell, bottomCell, topCell;
 	    for (let [label, position] of Object.entries(this.cells)) {
 		label = Number(label);
+		thisCell = this.cells[String(label)];
 		if (label == 0) {
 		    //console.log('top left corner', label)
 		    // top left corner cell
-		    this.initializePath(label, label + 1); // right
-		    this.initializePath(label, label + this.numberCells); // bottom
+		    this.setRightCellPath(label);
+		    this.setBottomCellPath(label);
 		} else if (label == this.numberCells - 1) {
 		    //console.log('top right corner', label)
 		    // top right corner cell
-		    this.initializePath(label, label - 1); // left
-                    this.initializePath(label, label + this.numberCells); // bottom
+		    this.setLeftCellPath(label);
+		    this.setBottomCellPath(label);
 		} else if (label == this.numberCells*(this.numberCells - 1)) {
 		    //console.log('bottom left corner', label)
 		    // bottom left corner cell
-		    this.initializePath(label, label + 1); // right
-                    this.initializePath(label, label - this.numberCells); // top
+		    this.setRightCellPath(label);
+		    this.setTopCellPath(label);
 		} else if (label == this.numberCells*this.numberCells - 1) {
 		    //console.log('bottom right corner', label)
 		    // bottom right corner cell
-		    this.initializePath(label, label - 1); // left
-                    this.initializePath(label, label - this.numberCells); // top
+		    this.setLeftCellPath(label);
+		    this.setTopCellPath(label);
 		} else if (label > 0 && label < this.numberCells - 1) {
 		    //console.log('top row', label)
 		    // top row minus corners
-		    this.initializePath(label, label + 1); // right
-                    this.initializePath(label, label - 1); // left
-		    this.initializePath(label, label + this.numberCells); // bottom
+		    this.setRightCellPath(label);
+		    this.setLeftCellPath(label);
+		    this.setBottomCellPath(label);
 		} else if (label > this.numberCells*(this.numberCells - 1) && label < this.numberCells*this.numberCells - 1) {
 		    //console.log('bottom row', label)
 		    // bottom row minus corners
-		    this.initializePath(label, label + 1); // right
-		    this.initializePath(label, label - 1); // left
-		    this.initializePath(label, label - this.numberCells ); // top
+		    this.setRightCellPath(label);
+		    this.setLeftCellPath(label);
+		    this.setTopCellPath(label);
 		} else if (label % this.numberCells == 0) {
 		    //console.log('left column', label)
 		    // left column minus corners
-		    this.initializePath(label, label - this.numberCells); // top
-                    this.initializePath(label, label + this.numberCells); // bottom
-		    this.initializePath(label, label + 1); // right
+		    this.setTopCellPath(label);
+		    this.setBottomCellPath(label);
+		    this.setRightCellPath(label);
 		} else if ((label + 1) % this.numberCells == 0) {
 		    //console.log('right column', label)
 		    // right column minus corners
-		    this.initializePath(label, label - this.numberCells); // top
-		    this.initializePath(label, label + this.numberCells); // bottom
-		    this.initializePath(label, label - 1); // left
+		    this.setTopCellPath(label);
+		    this.setBottomCellPath(label);
+		    this.setLeftCellPath(label);
 		} else {
 		    //console.log('middle', label)
 		    // in the middle
-		    this.initializePath(label, label - 1); // left
-		    this.initializePath(label, label + 1); // right
-		    this.initializePath(label, label - this.numberCells); // top
-		    this.initializePath(label, label + this.numberCells); // bottom
+		    this.setLeftCellPath(label);
+		    this.setRightCellPath(label);
+		    this.setTopCellPath(label);
+		    this.setBottomCellPath(label);
 		}
 	    }
 	}
@@ -293,15 +318,15 @@
     class Game {
 	constructor(canvas) {
 	    this.size = 750;
-	    this.numberCells = 21;
-	    this.proportionWalls = 0.8;
+	    this.numberCells = 20;
+	    this.proportionWalls = 1;
 	    this.canvas = document.getElementById('map');
-
+	    
 	    this.deltaT = 10;
 	    this.iterations = 1000;
 	    
 	    this.maze = new Maze(this.canvas, this.size, this.numberCells, this.proportionWalls);
-
+	    
 	    this.render();
 	}
 
