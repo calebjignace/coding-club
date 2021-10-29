@@ -15,18 +15,62 @@
     }
 
     class Cell {
-	constructor(label, i, j) {
+	constructor(label, a, b) {
 	    this.label = label;
-	    this.i = i;
-	    this.j = j;
+	    this.i = a;
+	    this.j = b;
 	    this.neighbors = {};
+	    this.paths = {};
+	    this.countSetNeighbor = {'left': 0, 'right': 0, 'top': 0, 'bottom': 0};
 	}
 	
 	setNeighbor(direction, cell) {
+	    if (this.countSetNeighbor[direction] > 1) {
+		throw new Error("setNeighbors() should only be called once for direction: " + direction);
+	    }
 	    if (!['left', 'right', 'top', 'bottom'].includes(direction)) {
-		return;
+		throw new Error("trying to set neighbor in a direction that doesn't exit");
 	    }
 	    this.neighbors[direction] = cell;
+	    this.paths[direction] = true;
+	    this.countSetNeighbor[direction]++;
+	}
+
+	setPath(direction, status) {
+	    if (!Object.keys(this.paths).includes(direction)) {
+		throw new Error("trying to set illegal path direction: " + direction);
+	    }
+	    if (status != false && status != true) {
+		throw new Error("trying to set illegal path status: " + status);
+	    }
+	    this.paths[direction] = status;
+	}
+	
+	flipPath(label) {
+	    /*
+	    if (!Object.keys(this.paths).includes(direction)) {
+		console.log(this.label, this.neighbors, this.paths)
+                throw new Error("trying to set illegal path direction: " + direction);
+            }
+	    */
+	    
+	    let direction = this.getDirectionOfNeighbor(label);
+
+	    //console.log(label, direction, this.paths[direction])
+	    
+	    this.paths[direction] = !this.paths[direction];
+	    
+	    //console.log(this.paths[direction])
+	}
+
+	getDirectionOfNeighbor(label) {
+	    for (let [direction, cell] of Object.entries(this.neighbors)) {
+		if (cell.label == label) {
+		    //console.log(label + " is " + direction + " of " + this.label)
+		    return direction;
+		}
+	    }
+	    throw new Error("cell has no neighbor with label: " + label);
 	}
     }
     
@@ -36,8 +80,6 @@
 	    this.ctx = this.canvas.getContext('2d');
 	    
 	    this.size = size;
-	    this.canvas.width =	this.size;
-            this.canvas.height = this.size;
 	    
 	    this.numberCells = numberCells; // on one side
 	    this.proportionWalls = proportionWalls;
@@ -57,34 +99,57 @@
 	    this.cells = {};
 	    this.walls = {};
 	    this.initializeMaze();
+
+	    //console.log(this.cells)
+
+	    //this.showPaths();
 	}
 	
 	initializeMaze() {
 	    this.initializeCells();
+	    //this.showPaths();
 	    this.initializePaths();
 	    this.initializeWalls();
+	    //this.showPaths();  
 	}
 
 	initializeWalls() {
+	    /*
+	      This allows randomly choosing with replacement. 
+	      Choosing without replacement would be better though, 
+	      but I'm not willing to spend the time to code that right now.
+	     */
 	    let paths = Object.keys(this.walls);
+	    let changePath;
 	    for (let i = 0; i < this.proportionWalls*paths.length; i++) {
-		this.walls[paths[randInt(paths.length)]] = 0;
+
+		this.flipRandomPath();
+		/*
+		changePath = paths[randInt(paths.length)];
+
+		console.log(changePath)
+		
+		this.walls[changePath] = !this.walls[changePath];
+		
+		let [labelA, labelB] = changePath.split(',');
+		
+		this.cells[String(labelA)].flipPath(String(labelB));
+		this.cells[String(labelB)].flipPath(String(labelA));
+		*/
 	    }
 	}
 	
 	initializeCells() {
 	    let count = 0;
-	    for (let i = 0; i < this.numberCells; i++) {
-		for (let j = 0; j < this.numberCells; j++) {
-
-
-		    //this.cells[String(count)]  = [i, j];
+	    for (let j = 0; j < this.numberCells; j++) {
+		for (let i = 0; i < this.numberCells; i++) {
 		    
 		    this.cells[String(count)] = new Cell(String(count), i, j);
 		    
 		    count++;
 		}
 	    }
+	    //console.log(this.cells)
 	}
 	
 	initializePath(labelA, labelB) {
@@ -93,47 +158,60 @@
 	      but I think that could actually be more computationally intensive.
 	    */
 	    //console.log(labelA, labelB);
-	    this.walls[[labelA, labelB].sort().toString()] = 1;
+	    this.walls[[labelA, labelB].sort().toString()] = true;
+	}
+
+	boundCellIndex(i) {
+	    if (i < 0) {
+		return 0;
+	    } else if (i > this.numberCells - 1) {
+		return this.numberCells - 1;
+	    } else {
+		return label;
+	    }
 	}
 
 	setRightCellPath(label) {
             this.initializePath(label, label + 1);
 	    this.cells[String(label)].setNeighbor('right', this.cells[String(label + 1)]);
+	    //this.cells[String(label)].setPath('right', true);
         }
 	
 	setLeftCellPath(label) {
 	    this.initializePath(label, label - 1);
 	    this.cells[String(label)].setNeighbor('left', this.cells[String(label - 1)]);
+	    //this.cells[String(label)].setPath('left', true);
 	}
 
 	setBottomCellPath(label) {
             this.initializePath(label, label + this.numberCells);
 	    this.cells[String(label)].setNeighbor('bottom', this.cells[String(label + this.numberCells)]);
+	    //this.cells[String(label)].setPath('bottom', true);
         }
 
 	setTopCellPath(label) {
             this.initializePath(label, label - this.numberCells);
 	    this.cells[String(label)].setNeighbor('top', this.cells[String(label - this.numberCells)]);
+	    //this.cells[String(label)].setPath('top', true);
         }
-
-	
-	
 	
 	initializePaths() {
 	    let thisCell, leftCell, rightCell, bottomCell, topCell;
 	    for (let [label, position] of Object.entries(this.cells)) {
 		label = Number(label);
 		thisCell = this.cells[String(label)];
-		if (label == 0) {
+		if (label == 0) { // done
 		    //console.log('top left corner', label)
 		    // top left corner cell
 		    this.setRightCellPath(label);
 		    this.setBottomCellPath(label);
+		//} else if (label == this.numberCells*(this.numberCells - 1)) {
 		} else if (label == this.numberCells - 1) {
 		    //console.log('top right corner', label)
 		    // top right corner cell
 		    this.setLeftCellPath(label);
 		    this.setBottomCellPath(label);
+		//} else if (label == this.numberCells - 1) {
 		} else if (label == this.numberCells*(this.numberCells - 1)) {
 		    //console.log('bottom left corner', label)
 		    // bottom left corner cell
@@ -144,24 +222,28 @@
 		    // bottom right corner cell
 		    this.setLeftCellPath(label);
 		    this.setTopCellPath(label);
+		//} else if (label % this.numberCells == 0) { 
 		} else if (label > 0 && label < this.numberCells - 1) {
 		    //console.log('top row', label)
 		    // top row minus corners
 		    this.setRightCellPath(label);
 		    this.setLeftCellPath(label);
 		    this.setBottomCellPath(label);
+		//} else if ((label + 1) % this.numberCells == 0) {
 		} else if (label > this.numberCells*(this.numberCells - 1) && label < this.numberCells*this.numberCells - 1) {
 		    //console.log('bottom row', label)
 		    // bottom row minus corners
 		    this.setRightCellPath(label);
 		    this.setLeftCellPath(label);
 		    this.setTopCellPath(label);
+		//} else if (label > 0 && label < this.numberCells - 1) {  
 		} else if (label % this.numberCells == 0) {
 		    //console.log('left column', label)
 		    // left column minus corners
 		    this.setTopCellPath(label);
 		    this.setBottomCellPath(label);
 		    this.setRightCellPath(label);
+		//} else if (label > this.numberCells*(this.numberCells - 1) && label < this.numberCells*this.numberCells - 1) {  
 		} else if ((label + 1) % this.numberCells == 0) {
 		    //console.log('right column', label)
 		    // right column minus corners
@@ -304,37 +386,99 @@
 
 	flipRandomPath() {
 	    let paths = Object.keys(this.walls);
-	    let changePath;
 	    let i = randInt(paths.length);
-	    changePath = paths[i];
+	    let changePath = paths[i];
+	    
 	    this.walls[changePath] = !this.walls[changePath];
+	    
+	    let [labelA, labelB] = changePath.split(',');
+	    this.cells[String(labelA)].flipPath(String(labelB));
+            this.cells[String(labelB)].flipPath(String(labelA));
 	}
 
 	clear() {
 	    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	}
+
+	showPaths() {
+	    let mazePaths = {};
+            for (let cell of Object.values(this.cells)) {
+                mazePaths[cell.label] = cell.paths;
+            }
+            console.log(mazePaths)
+	}
+
+	getCellByPosition(i, j) {
+	    for (let cell of Object.values(this.cells)) {
+		if (cell.i == i && cell.j == j) {
+		    return cell;
+		}
+	    }
+	    throw new Error("Could not find a cell at position: " + i + ", " + j);
+	}
+    }
+
+    class Player {
+	constructor(currentCell, radius, color) {
+	    this.currentCell = currentCell;
+	    this.radius = radius;
+	    this.color = color;
+	}
+
+	move(direction) {
+	    if (this.currentCell.neighbors[direction]) {
+		if (this.currentCell.paths[direction]) {
+		    this.currentCell = this.currentCell.neighbors[direction];
+		}
+	    }
+	}
+
+	render(canvas, cellWidth) {
+	    //console.log('rendering player', cellWidth)
+	    let ctx = canvas.getContext('2d');
+	    ctx.save();
+	    ctx.beginPath();
+            ctx.arc((this.currentCell.i+ 1/2)*cellWidth,
+		    (this.currentCell.j+ 1/2)*cellWidth,
+		    this.radius, 0, 2*Math.PI);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+	    ctx.restore();
 	}
     }
 
     class Game {
 	constructor(canvas) {
 	    this.size = 750;
-	    this.numberCells = 20;
-	    this.proportionWalls = 1;
+	    this.numberCells = 20; // make sure this is odd so player starts in middle
+	    this.proportionWalls = .3;
 	    this.canvas = document.getElementById('map');
+            this.canvas.width = this.size;
+            this.canvas.height = this.size;
+	    this.cellWidth = this.size/this.numberCells;
 	    
 	    this.deltaT = 10;
 	    this.iterations = 1000;
 	    
 	    this.maze = new Maze(this.canvas, this.size, this.numberCells, this.proportionWalls);
 	    
+	    let playerInitialCell = this.maze.getCellByPosition(randInt(this.numberCells), randInt(this.numberCells));
+            let playerRadius = 0.2*this.size/this.numberCells;
+            let playerColor = 'blue';
+	    
+	    this.player = new Player(playerInitialCell, playerRadius, playerColor);
+	    
 	    this.render();
 	}
 
 	render() {
 	    this.maze.render();
+	    this.player.render(this.canvas, this.cellWidth);
 	}
 
 	play () {
+	    //this.maze.showPaths();
+	    
 	    let time = 0;
 	    for (let i = 0; i < this.iterations; i++) {
 		setTimeout(() => {
@@ -342,12 +486,45 @@
 		    this.maze.flipRandomPath();
 		    this.maze.clear();
 		    this.maze.render();
+		    this.player.render(this.canvas, this.cellWidth); // I should probably have all the rendering methods in Game
+		    //this.maze.showPaths();
 		}, i*this.deltaT);
+	    }
+	}
+
+	input(event) {
+	    /*
+	      left = 37
+	      up = 38
+	      right = 39
+	      down = 40
+	    */
+	    console.log(this.player)
+	    if (event.keyCode == '38' || event.keyCode == '87') {
+		// up arrow
+		console.log('top')
+		this.player.move("top");
+	    }
+	    else if (event.keyCode == '40' || event.keyCode == '83') {
+		// down arrow
+		console.log('bottom')
+		this.player.move("bottom");
+	    }
+	    else if (event.keyCode == '37' || event.keyCode == '65') {
+		// left arrow
+		console.log('left')
+		this.player.move("left");
+	    }
+	    else if (event.keyCode == '39' || event.keyCode == '68') {
+		// right arrow
+		console.log('right')
+		this.player.move("right");
 	    }
 	}
     }
     
     let game = new Game();
+    window.addEventListener('keydown', event => game.input(event));
     game.play();
   </script>
 </html>
