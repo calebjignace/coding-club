@@ -31,24 +31,12 @@
 	}
 	
 	setNeighbor(direction, cell) {
-	    if (this.countSetNeighbor[direction] > 1) {
-		throw new Error("setNeighbors() should only be called once for direction: " + direction);
-	    }
-	    if (!['left', 'right', 'top', 'bottom'].includes(direction)) {
-		throw new Error("trying to set neighbor in a direction that doesn't exit");
-	    }
 	    this.neighbors[direction] = cell;
 	    this.paths[direction] = true;
 	    this.countSetNeighbor[direction]++;
 	}
 
 	setPath(direction, status) {
-	    if (!Object.keys(this.paths).includes(direction)) {
-		throw new Error("trying to set illegal path direction: " + direction);
-	    }
-	    if (status != false && status != true) {
-		throw new Error("trying to set illegal path status: " + status);
-	    }
 	    this.paths[direction] = status;
 	}
 	
@@ -63,22 +51,18 @@
 		    return direction;
 		}
 	    }
-	    throw new Error("cell has no neighbor with label: " + label);
 	}
     }
     
     class Maze {
 	constructor(canvas, size, numberCells, proportionWalls) {
-	    /*
 	    this.canvas = canvas;
 	    this.ctx = this.canvas.getContext('2d');
-	    */
 	    this.size = size;
 	    
 	    this.numberCells = numberCells; // on one side
 	    this.proportionWalls = proportionWalls;
 
-	    /*
 	    this.cellWidth = this.size/this.numberCells;
 	    this.numberCorners = numberCells + 1;
 	    
@@ -90,7 +74,6 @@
 	    this.wallColor = '#152238';
 	    this.pathWidth = this.wallWidth;
 	    this.pathColor = 'white';
-	    */
 	    
 	    this.cells = {};
 	    this.walls = {};
@@ -428,26 +411,12 @@
 	    this.ctx = this.canvas.getContext('2d');
             this.canvas.width = this.size;
             this.canvas.height = this.size;
-	    //this.cellWidth = this.size/this.numberCells;
-	    
-	    
 	    this.cellWidth = this.size/this.numberCells;
-            this.numberCorners = numberCells + 1;
-	    
-            this.cornerRadius = 0.1*this.canvas.width/this.numberCorners;
-            this.cornerColor = '#152238';
-            this.playerRadius = 3*this.cornerRadius;
-            this.playerColor = 'lightblue';
-            this.wallWidth = 2*this.cornerRadius;
-            this.wallColor = '#152238';
-            this.pathWidth = this.wallWidth;
-            this.pathColor = 'white';
-
 	    
 	    this.deltaT = 20;
 	    this.iterations = 10000;
 	    
-	    this.maze = new Maze(this.size, this.numberCells, this.proportionWalls);
+	    this.maze = new Maze(this.canvas, this.size, this.numberCells, this.proportionWalls);
 	    
 	    this.playerInitialCell = this.maze.getCellByPosition(randInt(this.numberCells), randInt(this.numberCells));
             let playerRadius = 0.25*this.size/this.numberCells;
@@ -489,8 +458,8 @@
 
 	render() {
 	    this.clearMap();
-	    //this.maze.render();
-	    this.renderMap();
+	    this.maze.render();
+	    //this.renderMap();
 	    this.renderWinningCell();
 	    this.player.render(this.canvas, this.cellWidth);
 	}
@@ -498,49 +467,6 @@
 	clearMap() {
 	    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
-
-	renderMap(showCorners = false, showPaths = false, showLabels = false) {
-            if (showCorners) {
-                this.renderCorners();
-            }
-            if (showPaths) {
-                this.renderPaths();
-            }
-            this.renderWalls();
-            if (showLabels) {
-                this.renderCellLabels();
-            }
-        }
-
-	drawCircle(x, y, circleType) {
-            this.ctx.beginPath();
-            if (circleType == 'corner') {
-                this.ctx.arc(x, y, this.cornerRadius, 0, 2*Math.PI);
-                this.ctx.fillStyle = this.cornerColor;
-            } else if (circleType == 'player') {
-                this.ctx.arc(x, y, this.playerRadius, 0, 2*Math.PI);
-                this.ctx.fillStyle = this.playerColor;
-            }
-            this.ctx.fill();
-        }
-
-	renderPaths() {
-            let a, b, c, d;
-            let labelA, labelB;
-            for (let [path, open] of Object.entries(this.walls)) {
-                if (open) {
-                    [labelA, labelB] = path.split(',');
-                    a = this.cells[labelA].i;
-                    b = this.cells[labelA].j;
-                    c = this.cells[labelB].i;
-                    d = this.cells[labelB].j;
-                    this.drawLine((a+0.5)*this.cellWidth,
-                                  (b + 0.5)*this.cellWidth,
-                                  (c + 0.5)*this.cellWidth,
-                                  (d + 0.5)*this.cellWidth, 'path');
-                }
-            }
-        }
 
 	renderWinningCell() {
 	    this.ctx.save();
