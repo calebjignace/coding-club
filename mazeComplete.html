@@ -53,26 +53,13 @@
 	}
 	
 	flipPath(label) {
-	    /*
-	    if (!Object.keys(this.paths).includes(direction)) {
-		console.log(this.label, this.neighbors, this.paths)
-                throw new Error("trying to set illegal path direction: " + direction);
-            }
-	    */
-	    
 	    let direction = this.getDirectionOfNeighbor(label);
-
-	    //console.log(label, direction, this.paths[direction])
-	    
 	    this.paths[direction] = !this.paths[direction];
-	    
-	    //console.log(this.paths[direction])
 	}
 
 	getDirectionOfNeighbor(label) {
 	    for (let [direction, cell] of Object.entries(this.neighbors)) {
 		if (cell.label == label) {
-		    //console.log(label + " is " + direction + " of " + this.label)
 		    return direction;
 		}
 	    }
@@ -105,18 +92,12 @@
 	    this.cells = {};
 	    this.walls = {};
 	    this.initializeMaze();
-
-	    //console.log(this.cells)
-
-	    //this.showPaths();
 	}
 	
 	initializeMaze() {
 	    this.initializeCells();
-	    //this.showPaths();
 	    this.initializePaths();
 	    this.initializeWalls();
-	    //this.showPaths();  
 	}
 
 	initializeWalls() {
@@ -126,22 +107,8 @@
 	      but I'm not willing to spend the time to code that right now.
 	     */
 	    let paths = Object.keys(this.walls);
-	    let changePath;
 	    for (let i = 0; i < this.proportionWalls*paths.length; i++) {
-
 		this.flipRandomPath();
-		/*
-		changePath = paths[randInt(paths.length)];
-
-		console.log(changePath)
-		
-		this.walls[changePath] = !this.walls[changePath];
-		
-		let [labelA, labelB] = changePath.split(',');
-		
-		this.cells[String(labelA)].flipPath(String(labelB));
-		this.cells[String(labelB)].flipPath(String(labelA));
-		*/
 	    }
 	}
 	
@@ -155,7 +122,6 @@
 		    count++;
 		}
 	    }
-	    //console.log(this.cells)
 	}
 	
 	initializePath(labelA, labelB) {
@@ -163,44 +129,27 @@
 	      I could check to see if this wall is already initialized, 
 	      but I think that could actually be more computationally intensive.
 	    */
-	    //console.log(labelA, labelB);
 	    this.walls[[labelA, labelB].sort().toString()] = true;
 	}
-
-	/*
-	boundCellIndex(i) {
-	    if (i < 0) {
-		return 0;
-	    } else if (i > this.numberCells - 1) {
-		return this.numberCells - 1;
-	    } else {
-		return label;
-	    }
-	}
-	*/
 
 	setRightCellPath(label) {
             this.initializePath(label, label + 1);
 	    this.cells[String(label)].setNeighbor('right', this.cells[String(label + 1)]);
-	    //this.cells[String(label)].setPath('right', true);
         }
 	
 	setLeftCellPath(label) {
 	    this.initializePath(label, label - 1);
 	    this.cells[String(label)].setNeighbor('left', this.cells[String(label - 1)]);
-	    //this.cells[String(label)].setPath('left', true);
 	}
 
 	setBottomCellPath(label) {
             this.initializePath(label, label + this.numberCells);
 	    this.cells[String(label)].setNeighbor('bottom', this.cells[String(label + this.numberCells)]);
-	    //this.cells[String(label)].setPath('bottom', true);
         }
 
 	setTopCellPath(label) {
             this.initializePath(label, label - this.numberCells);
 	    this.cells[String(label)].setNeighbor('top', this.cells[String(label - this.numberCells)]);
-	    //this.cells[String(label)].setPath('top', true);
         }
 	
 	initializePaths() {
@@ -208,58 +157,43 @@
 	    for (let [label, position] of Object.entries(this.cells)) {
 		label = Number(label);
 		thisCell = this.cells[String(label)];
-		if (label == 0) { // done
-		    //console.log('top left corner', label)
+		if (label == 0) {
 		    // top left corner cell
 		    this.setRightCellPath(label);
 		    this.setBottomCellPath(label);
-		//} else if (label == this.numberCells*(this.numberCells - 1)) {
 		} else if (label == this.numberCells - 1) {
-		    //console.log('top right corner', label)
 		    // top right corner cell
 		    this.setLeftCellPath(label);
 		    this.setBottomCellPath(label);
-		//} else if (label == this.numberCells - 1) {
 		} else if (label == this.numberCells*(this.numberCells - 1)) {
-		    //console.log('bottom left corner', label)
 		    // bottom left corner cell
 		    this.setRightCellPath(label);
 		    this.setTopCellPath(label);
 		} else if (label == this.numberCells*this.numberCells - 1) {
-		    //console.log('bottom right corner', label)
 		    // bottom right corner cell
 		    this.setLeftCellPath(label);
 		    this.setTopCellPath(label);
-		//} else if (label % this.numberCells == 0) { 
 		} else if (label > 0 && label < this.numberCells - 1) {
-		    //console.log('top row', label)
 		    // top row minus corners
 		    this.setRightCellPath(label);
 		    this.setLeftCellPath(label);
 		    this.setBottomCellPath(label);
-		//} else if ((label + 1) % this.numberCells == 0) {
 		} else if (label > this.numberCells*(this.numberCells - 1) && label < this.numberCells*this.numberCells - 1) {
-		    //console.log('bottom row', label)
 		    // bottom row minus corners
 		    this.setRightCellPath(label);
 		    this.setLeftCellPath(label);
 		    this.setTopCellPath(label);
-		//} else if (label > 0 && label < this.numberCells - 1) {  
 		} else if (label % this.numberCells == 0) {
-		    //console.log('left column', label)
 		    // left column minus corners
 		    this.setTopCellPath(label);
 		    this.setBottomCellPath(label);
 		    this.setRightCellPath(label);
-		//} else if (label > this.numberCells*(this.numberCells - 1) && label < this.numberCells*this.numberCells - 1) {  
 		} else if ((label + 1) % this.numberCells == 0) {
-		    //console.log('right column', label)
 		    // right column minus corners
 		    this.setTopCellPath(label);
 		    this.setBottomCellPath(label);
 		    this.setLeftCellPath(label);
 		} else {
-		    //console.log('middle', label)
 		    // in the middle
 		    this.setLeftCellPath(label);
 		    this.setRightCellPath(label);
@@ -273,13 +207,10 @@
 	    if (showCorners) {
 		this.renderCorners();
 	    }
-
 	    if (showPaths) {
 		this.renderPaths();
 	    }
-	    
 	    this.renderWalls();
-
 	    if (showLabels) {
 		this.renderCellLabels();
 	    }
@@ -404,16 +335,18 @@
             this.cells[String(labelB)].flipPath(String(labelA));
 	}
 
+	/*
 	clear() {
 	    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
+	*/
 
 	showPaths() {
 	    let mazePaths = {};
             for (let cell of Object.values(this.cells)) {
                 mazePaths[cell.label] = cell.paths;
             }
-            console.log(mazePaths)
+	    console.log(mazePaths)
 	}
 
 	getCellByPosition(i, j) {
@@ -468,7 +401,6 @@
 	}
 
 	render(canvas, cellWidth) {
-	    //console.log('rendering player', cellWidth)
 	    let ctx = canvas.getContext('2d');
 	    ctx.save();
 	    ctx.beginPath();
@@ -515,6 +447,9 @@
 	    this.playerWon = false;
 	    
 	    this.render();
+
+	    window.addEventListener('keydown', event => this.keydown(event));
+	    window.addEventListener('keyup', event => this.keyup(event)); 
 	}
 
 	setWinCondition() {
@@ -525,7 +460,6 @@
 		j = randInt(this.numberCells);
 	    }
 	    this.winCell = this.maze.getCellByPosition(i, j);
-	    //console.log(this.winCell, this.playerInitialCell);
 	}
 
 	checkPlayerHasWon() {
@@ -537,10 +471,14 @@
 	}
 
 	render() {
-	    this.maze.clear();
+	    this.clearMap();
 	    this.maze.render();
 	    this.renderWinningCell();
 	    this.player.render(this.canvas, this.cellWidth);
+	}
+
+	clearMap() {
+	    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
 	renderWinningCell() {
@@ -560,7 +498,6 @@
 	}
 
 	play () {
-	    //this.maze.showPaths();
 	    let dt = 1;
 	    let counter = 0;
 	    for (let i = 0; i < this.iterations; i++) {   
@@ -573,31 +510,9 @@
 			if (this.playerWon) { 
 			    console.log('you win!');
 			}
-			
-			/*
-			  if (self.playerHasWon() || counter > self.iterations) {
-			  clearInterval(timer);
-			  }
-			*/
 		    }
 		}, i*this.deltaT);
 	    }
-	    /*
-	    for (let i = 0; i < this.iterations; i++) {
-		setTimeout(() => {
-		    this.maze.flipRandomPath();
-		    this.player.update(dt);
-		    this.maze.clear();
-		    this.render();
-		    this.player.render(this.canvas, this.cellWidth); // I should probably have all the rendering methods in Game
-
-		    if (this.playerHasWon()) {
-			console.log("you won!");
-		    }
-		    
-		    //this.maze.showPaths();
-		}, i*this.deltaT);
-	    */
 	}
 
 	getDirection(event) {
@@ -625,8 +540,6 @@
     }
     
     let game = new Game();
-    window.addEventListener('keydown', event => game.keydown(event));
-    window.addEventListener('keyup', event => game.keyup(event));
     game.play();
   </script>
 </html>
