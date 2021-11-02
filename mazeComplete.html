@@ -27,13 +27,11 @@
 	    this.j = j;
 	    this.neighbors = {};
 	    this.paths = {};
-	    this.countSetNeighbor = {'left': 0, 'right': 0, 'top': 0, 'bottom': 0};
 	}
 	
 	setNeighbor(direction, cell) {
 	    this.neighbors[direction] = cell;
 	    this.paths[direction] = true;
-	    this.countSetNeighbor[direction]++;
 	}
 
 	setPath(direction, status) {
