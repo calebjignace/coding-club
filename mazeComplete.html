@@ -21,10 +21,10 @@
     }
 
     class Cell {
-	constructor(label, a, b) {
+	constructor(label, i, j) {
 	    this.label = label;
-	    this.i = a;
-	    this.j = b;
+	    this.i = i;
+	    this.j = j;
 	    this.neighbors = {};
 	    this.paths = {};
 	    this.countSetNeighbor = {'left': 0, 'right': 0, 'top': 0, 'bottom': 0};
