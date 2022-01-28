@@ -1,0 +1,297 @@
+<html>
+  <style>
+    body {
+	font-size: 20px;
+	margin-left: 30px;
+    }
+    .content {
+	width: 70%;
+	min-width: 350px;
+    }
+    .canvas {
+	width: 200px;
+	height: 200px;
+	border: solid 1px black;
+	margin: 5px;
+    }
+    div {
+	padding: 10px;
+    }
+    table {
+	font-size: 20px;
+	width: 500px;
+	text-align: left;
+    }
+    button {
+	font-size: 20px;
+	font-weight: bold;
+	border-radius: 5px;
+	margin: 20px;
+	margin-left: 0px;
+	padding: 10px;
+    }
+  </style>
+  <div class="content">
+    <h1>Estimating the likelihood of unique shadings of a 10x10 grid</h1>
+  <h2>Inspiration</h2>
+  <p>
+    I taught the lesson today for 6th graders.
+    It was about percentages.
+    Percentage was introduced as "a fraction whose denominator is 100."
+    We had a lot of time left after the lesson so I improvised in creating a problem.
+    They had a few examples of filling in a 10x10 grid of sqaures as indicating percentage.
+    For instance, 50/100 could be modeled as 50 of the squares being shaded.
+    There are lots of ways you could choose 50 squares out of 100.
+  </p>
+  <p>
+    I then asked them to fill 25 squares out of 100.
+    With the added challenge that if any two students had the same model,
+    then they would all lose the game.
+    The challenge was that every single one of them should find a unique shading.
+    I even added a time constrant of 2 minutes.
+    There were 21 students.
+  </p>
+  <p>
+    When everyone had chosen a shading, I had students come up to the front and
+    I would show their shading to the rest of the class through the projector.
+    The rest of the students in the class had to check their shading to see if it matched.
+    It was an honors system.
+  </p>
+  <p>
+    The second student's shading was a checkers pattern.
+    It turned out that another student had the same shadding.
+    The game was already over!
+  </p>
+  <p>
+    The	take away for that round was that the human brain doesn't choose uniformly at random.
+    Especially under stress.
+    The time constraint was the stressor.
+    To ellaborate, the brain was to conserve energy.
+    Trying to choose each of the 25 squares at random within 2 minutes is a high energy task.
+    You're thinking about how little time remains.
+    You're thinking about how non-random your last three choices were.
+    You're having to keep tract of how many squares you've shaded in.
+    Oops! Lost track again!
+    You end up just filling in according to an easy pattern so you can just be done with it.
+  </p>
+  <p>
+    Next I asked them to play the same game but choosing to shade in just 2 squares.
+    They all filled them in much faster.
+    I didn't hear any sounds of distress of choosing 2 squares in 2 minutes.
+    Easy breezy lemon squeezy.
+  </p>
+  <p>
+    Before we checked to see if they were all unique, I asked them if they thought it was more likely
+    that at least two students had the same pattern with 25 or 2 squares shadded in?
+    17 students voted for 25, 2 students voted for 2, and 2 students chose not to vote.
+  </p>
+  <p>
+    This time all the models were the same.
+  </p>
+  <p>
+    Let's investigate whether or not the students had the write intuition about which number of squares was more likely
+    to give at least 2 students having the same shading.
+  </p>
+  <p>
+    But first a discussion about the limitations of the problem.
+    To answer the problem about "students", we'd need to conduct exactly the same experiment with different
+    sets of students. All of whom hadn't heard of this experiment before.
+    This is called the Independent and Identically Distributed (i.i.d.) property of random variables.
+  </p>
+  <p>
+    But we could run a computer simulation to answer the problem.
+    Assuming each square is truely chosen uniformly at random.
+    Here is that experiment.
+    First a visualization of what the simulation is going.
+    The visualization is slow.
+    The simulation is very fast if we don't care to visualize it, but it's important to visualize to make sure we
+    understand the process enough to code it up.
+  </p>
+  <h2>Visualization</h2>
+    <p>
+    <b>Number of squares to choose</b>
+    <!--<br> Can you figure out why only the set {1 - 50} is interesting and why the set {0, 51 - 100} is not?-->
+    </p>
+    <input type="range" min="1" max="8" value="1" class="slider" id="choose"><span id="choose-display">1</span><br>
+    <p><b>Number of simultaneous models</b></p>
+    <input type="range" min="2" max="25" value="2" class="slider" id="models"><span id="models-display">2</span><br>
+    <button id="run">Run</button><!-- Auto <input type="checkbox" id="auto">-->
+    <p><b>Results</b></p>
+  </div>
+  <table id="stats"></table>
+  <div id="experiments"></div>
+  <script>
+    let chooseInput = document.getElementById("choose");
+    let modelsInput = document.getElementById("models");
+    let	experimentsDiv = document.getElementById("experiments");
+    let canvasElements;
+    let numberSquaresOnSide = 4;
+    let size = 300;
+    let chosenSquares;
+    let availableSquares;
+    let squares;
+    let statsParagraph = document.getElementById("stats");
+    let stats = {};
+    chooseInput.oninput = function() {
+	document.getElementById("choose-display").innerText = chooseInput.value;
+    }
+    modelsInput.oninput = function() {
+        document.getElementById("models-display").innerText = modelsInput.value;
+	createCanvasElements();
+    }
+    function createCanvasElements() {
+	experimentsDiv.innerHTML = "";
+
+	let i = 0;
+	while (i < modelsInput.value) {   
+	    experimentsDiv.innerHTML += '<canvas class="canvas"></canvas>';
+	    i++;
+	}
+	    
+	canvasElements = experimentsDiv.children;
+	chosenSquares = {};
+	availableSquares = {};
+	
+	let canvas;
+	for (let i = 0; i < canvasElements.length; i++) {
+	    chosenSquares[i] = [];
+	    availableSquares[i] = Object.keys(squares);
+	    canvas = canvasElements[i];
+	    canvasElements[i].width = size;
+	    canvasElements[i].height = size;
+	    drawSquares(canvasElements[i], canvasElements[i].getContext("2d"));
+	}
+    }
+    function drawSquares(canvas, ctx) {
+	for (let i = 0; i < numberSquaresOnSide; i++) {
+	    ctx.beginPath();
+	    ctx.moveTo(i*canvas.width/numberSquaresOnSide, 0);
+	    ctx.lineTo(i*canvas.width/numberSquaresOnSide, canvas.width);
+	    ctx.stroke();
+	    ctx.closePath();
+	    
+            ctx.beginPath();
+            ctx.moveTo(0, i*canvas.width/numberSquaresOnSide);
+            ctx.lineTo(canvas.height, i*canvas.width/numberSquaresOnSide);
+            ctx.stroke();
+            ctx.closePath();
+        }
+    }
+    function drawFilledSquare(canvas, ctx, k) {
+	// fill the kth square on this canvas
+	let [i, j] = squares[k];
+        ctx.beginPath();
+	ctx.fillRect(i*canvas.width/numberSquaresOnSide,
+		     j*canvas.height/numberSquaresOnSide,
+		     canvas.width/numberSquaresOnSide,
+                     canvas.height/numberSquaresOnSide);
+        ctx.closePath();
+    }
+    function randInt(max) {
+	// min is 0
+	return Math.floor(Math.random()*max);
+    }
+    function generateSquares() {
+	squares = {};
+	let count = 1;
+	for (let i = 0; i < numberSquaresOnSide; i++) {
+	    for (let j = 0; j < numberSquaresOnSide; j++) {
+		squares[count] = [i, j];
+		count++;
+            }
+	}
+    }
+    function arraysAreIdentify(a, b) {
+	if (a.length != b.length) {
+	    return false;
+	}
+	for (let element of a) {
+	    if (!b.includes(element)) {
+		return false;
+	    }
+	}
+	return true;
+    }
+    function anyAtLeastTwoModelsAreIdentical() {
+	for (let i = 0; i < canvasElements.length; i++) {
+	    for (let j = 0; j < canvasElements.length; j++)	{
+		if (i > j) {
+		    if (arraysAreIdentify(chosenSquares[i], chosenSquares[j])) {
+			canvasElements[i].style.backgroundColor = "yellow";
+			canvasElements[j].style.backgroundColor	= "yellow";
+			return true;
+		    }
+		}
+            }
+	}
+	return false;
+    }
+    function round(value, decimals) {
+	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+    }
+    let timerID;
+    let runButton = document.getElementById("run");
+    //let autoInput = document.getElementById("auto");
+    runButton.onclick = function() {
+	//console.log(stats)
+	if (!Object.keys(stats).includes(modelsInput.value)) {
+	    stats[modelsInput.value] = {};
+	}
+	if (!Object.keys(stats[modelsInput.value]).includes(chooseInput.value)) {
+            stats[modelsInput.value][chooseInput.value] = {"runs": 0, "uniques": 0};
+        }
+
+	stats[modelsInput.value][chooseInput.value]["runs"]++;
+	
+	if (timerID) {
+	    console.log("Not finished with the last run.")
+	    return;
+	}
+	createCanvasElements();
+	let count = 1;
+	let k;
+	timerID = setInterval(() => {
+	    //console.log(count);
+	    for (let i = 0; i < canvasElements.length; i++) {
+		k = randInt(availableSquares[i].length); // choose an available square at random
+		chosenSquares[i].push(availableSquares[i][k]); // add it to chosen squares
+		availableSquares[i].splice(k, 1); // remove it from available
+		drawFilledSquare(canvasElements[i], canvasElements[i].getContext("2d"), chosenSquares[i][chosenSquares[i].length - 1]); // draw it on canvas
+	    }
+	    if(count == chooseInput.value){
+		//console.log("finished")
+		clearInterval(timerID);
+		timerID = null;
+		if (anyAtLeastTwoModelsAreIdentical()) {
+		    //pass
+		} else {
+		    stats[modelsInput.value][chooseInput.value]["uniques"]++;
+		}
+		/*
+		if (autoInput.checked) {
+		    setTimeout(() => {
+			runButton.click();
+		    }, 500);
+		} 
+		*/
+	    }
+	    count++;
+	    let row;
+	    statsParagraph.innerHTML = "<tr><th>Models</th><th>Squares</th><th>Runs</th><th>Unique</th><th>Prob. Unique</th></tr>";
+	    for (let m of Object.keys(stats)) {
+		for (let s of Object.keys(stats[m])) {
+		    row = '<tr><td>'+m;
+		    row += '</td><td>'+s;
+		    row += '</td><td>'+stats[m][s]['runs'];
+		    row += '</td><td>'+stats[m][s]['uniques'];
+		    row += '</td><td>'+String(round(stats[m][s]['uniques']/stats[m][s]['runs'], 5));
+		    row += '</td></tr>';
+		    statsParagraph.innerHTML += row;
+		}
+	    }
+	}, 50);
+    }
+    generateSquares();
+    createCanvasElements();    
+  </script>
+</html>
